@@ -1,0 +1,14 @@
+Release Date: Oct 06, 2016
+Version: 2016Q3
+Type: Stack Release
+
+Downloads
+Linux Kernel - 4.7.2
+Mesa - 12.0.1
+xf86-video-intel - 2.99.917
+Libdrm - 2.4.68
+Libva - 1.7.2
+vaapi intel-driver - 1.7.2
+Cairo - 1.15.2
+Xorg Xserver - 1.18.3
+Intel-gpu-tools - 1.16
