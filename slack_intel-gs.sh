@@ -42,7 +42,7 @@ fi
 
 mesa_download="ftp://ftp.freedesktop.org/pub/mesa/mesa-$MESA_VERSION.tar.xz"
 libdrm_download="https://dri.freedesktop.org/libdrm/libdrm-$LIBDRM_VERSION.tar.gz"
-libva_download="https://github.com/01org/libva/releases/download/2.1.0/libva-$LIBVA_VERSION.tar.bz2"
+libva_download="https://github.com/intel/libva/archive/libva-$LIBVA_VERSION.tar.gz"
 libvaapi_download="https://github.com/intel/intel-vaapi-driver/releases/download/2.1.0/intel-vaapi-driver-$LIBVAAPI_VERSION.tar.bz2"
 cairo_download="http://cairographics.org/releases/cairo-$CAIRO_VERSION.tar.xz"
 intelgputools_download="https://www.x.org/archive/individual/app/intel-gpu-tools-$INTELGPUTOOLS_VERSION.tar.xz"
@@ -74,7 +74,7 @@ function build(){
 
   TMP=$TMP VERSION=$VERSION sh ./$PKGNAM.SlackBuild || exit 1
 
-  upgradepkg --install-new --reinstall $TMP/$PKGNAM-$VERSION-$ARCH-$BUILD.txz || exit 1
+  upgradepkg --install-new --reinstall $TMP/$PKGNAM-$VERSION-*-$BUILD.txz || exit 1
 }
 
 function mesa(){
@@ -100,7 +100,9 @@ function libva(){
   VERSION=$LIBVA_VERSION
   BUILD=1
 
+  rsync -avr rsync://rsync.slackbuilds.org/slackbuilds/14.1/libraries/libva $SAVEAT
   download_sources $PKGNAM
+  sed -i 's/$PRGNAM-$VERSION.tar.bz2/$PRGNAM-$VERSION.tar.gz/' $SAVEAT/$PKGNAM/$PKGNAM.SlackBuild
   build $PKGNAM $VERSION $BUILD
 }
 
@@ -185,12 +187,11 @@ function xorg(){
 function download_slackbuilds() {
   rsync -avr \
     --exclude="libdrm-2.4.49.tar.xz" \
-    --exclude="libva-1.6.2.tar.xz" \
-    --exclude="mesa-9.1.7.tar.?z*" \
+    --exclude="MesaLib-9.1.7.tar.?z*" \
     --exclude="cairo-1.12.16.tar.xz" --exclude="cairo.*.diff.gz" \
-	$SLACKWARE_URL/source/./{x/{mesa,libdrm,libva},l/cairo} $SAVEAT
+	$SLACKWARE_URL/source/./{x/{mesa,libdrm},l/cairo} $SAVEAT
 
-  ls $SAVEAT/{libdrm,libva,intel-vaapi-driver,mesa,cairo}
+  ls $SAVEAT/{libdrm,intel-vaapi-driver,mesa,cairo}
 
   # Now Xorg uses xorg-proto, exclude sync of proto
   rsync -avr \
