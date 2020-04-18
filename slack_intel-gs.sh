@@ -2,20 +2,23 @@
 #
 # Build Intel Graphics Stack 2018Q1
 #
-# It was tested at Slackware64 14.2
+# It was tested at Slackware64 14.1
 # It requires about 2GB for temporary files
 # 
 
 PKGS="mesa\|libdrm\|libva\|intel-vaapi-driver\|cairo\|intel-gpu-tools\|xorg-server"
 
-SAVEAT=~/Downloads/IGS-2018Q1
+IGS_VERSION=2014Q2
+
+SAVEAT=~/Downloads/IGS-$IGS_VERSION
 
 #SLACKWARE_MIRROR=https://mirrors.slackware.com/slackware  # WGET
 #SLACKWARE_MIRROR=ftp://ftp.slackware.com/pub/slackware  # FTP
-SLACKWARE_MIRROR=rsync://ftp.slackware.com/slackware
-SLACKWARE_VERSION=slackware64-14.2
+SLACKWARE_MIRROR=${MIRROR:-rsync://ftp.slackware.com/slackware}
+SLACKWARE_VERSION=slackware-14.1
 
 
+if [ ! -f "INTEL-GRAPHICS-STACK_$IGS_VERSION" ]; then
 ###############################
 ## Package list for IGS-2018Q1
 ###############################
@@ -27,6 +30,15 @@ LIBVAAPI_VERSION=2.1.0
 CAIRO_VERSION=1.16.0 #1.15.10
 INTELGPUTOOLS_VERSION=1.22
 XORG_VERSION=1.19.99.901
+else
+MESA_VERSION=$(grep "Mesa" ./INTEL-GRAPHICS-STACK_$IGS_VERSION | awk '{print $3}')
+LIBDRM_VERSION=$(grep "Libdrm" ./INTEL-GRAPHICS-STACK_$IGS_VERSION | awk '{print $3}')
+LIBVA_VERSION=$(grep "Libva" ./INTEL-GRAPHICS-STACK_$IGS_VERSION | awk '{print $3}')
+LIBVAAPI_VERSION=$(grep "vaapi" ./INTEL-GRAPHICS-STACK_$IGS_VERSION | awk '{print $4}')
+CAIRO_VERSION=$(grep "Cairo" ./INTEL-GRAPHICS-STACK_$IGS_VERSION | awk '{print $3}')
+INTELGPUTOOLS_VERSION=$(grep "Intel-gpu-tools" ./INTEL-GRAPHICS-STACK_$IGS_VERSION | awk '{print $3}')
+XORG_VERSION=$(grep "Xorg" ./INTEL-GRAPHICS-STACK_$IGS_VERSION | awk '{print $4}')
+fi
 
 mesa_download="ftp://ftp.freedesktop.org/pub/mesa/mesa-$MESA_VERSION.tar.xz"
 libdrm_download="https://dri.freedesktop.org/libdrm/libdrm-$LIBDRM_VERSION.tar.gz"
@@ -41,11 +53,11 @@ xorg_download="https://www.x.org/releases/individual/xserver/xorg-server-$XORG_V
 SLACKWARE_URL=$SLACKWARE_MIRROR/$SLACKWARE_VERSION
 
 slackpkg search $PKGS
-exit
+
 
 mkdir -p $SAVEAT
 
-TMP=${TMP:-/tmp/INTELGS-2018Q1}
+TMP=${TMP:-/tmp/INTELGS-$IGS_VERSION}
 
 mkdir -p $TMP
 
@@ -172,10 +184,10 @@ function xorg(){
 # Download Slackware sources
 function download_slackbuilds() {
   rsync -avr \
-    --exclude="libdrm-2.4.68.tar.xz" \
+    --exclude="libdrm-2.4.49.tar.xz" \
     --exclude="libva-1.6.2.tar.xz" \
-    --exclude="mesa-11.2.2.tar.?z*" \
-    --exclude="cairo-1.14.6.tar.xz" --exclude="cairo.*.diff.gz" \
+    --exclude="mesa-9.1.7.tar.?z*" \
+    --exclude="cairo-1.12.16.tar.xz" --exclude="cairo.*.diff.gz" \
 	$SLACKWARE_URL/source/./{x/{mesa,libdrm,libva},l/cairo} $SAVEAT
 
   ls $SAVEAT/{libdrm,libva,intel-vaapi-driver,mesa,cairo}
@@ -183,12 +195,20 @@ function download_slackbuilds() {
   # Now Xorg uses xorg-proto, exclude sync of proto
   rsync -avr \
     --exclude="src/proto/*.*" \
-    --exclude="src/app/intel-gpu-tools-1.9.tar.xz" \
-    --exclude="src/xserver/xorg-server-1.8.3.tar.xz" \
+    --exclude="src/app/intel-gpu-tools-1.3.tar.xz" \
+    --exclude="src/xserver/xorg-server-1.14.3.tar.xz" \
 	$SLACKWARE_URL/source/./x/x11 $SAVEAT
 }
 
 function download_sources(){
+  echo $mesa_download
+  echo $libdrm_download
+  echo $libva_download
+  echo $libvaapi_download
+  echo $cairo_download
+  echo $intelgputools_download
+  echo $xorg_download
+
   case $1 in
 	libdrm|libva|mesa|cairo)
 		DOWNLOAD="$(eval echo \$$1_download)"
